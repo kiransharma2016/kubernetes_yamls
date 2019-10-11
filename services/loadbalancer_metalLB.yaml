@@ -1,0 +1,48 @@
+#we can follow the instructions specified in the document or else we can
+#download the yaml file and modified the parameters based on our requirement.
+#https://metallb.universe.tf/installation/
+#kubectl apply -f https://raw.githubusercontent.com/google/metallb/v0.8.1/manifests/metallb.yaml
+#After This follow the configurations steps specified: https://metallb.universe.tf/configuration/
+#kubectl expose deploy nginx --port 80 --type Loadbalancer
+
+
+l2 Config for metallb:
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: config
+  namespace: metallb-system
+data:
+  config: |
+    address-pools:
+    - name: default
+      protocol: layer2
+      addresses:
+      - 192.168.1.200-192.168.1.220
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx
+  labels:
+    app: nginx
+spec:
+  containers:
+  - name: nginx
+    image: nginx
+    imagePullPolicy: IfNotPresent
+    ports:
+    - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: example-service
+spec:
+  selector:
+    app: nginx
+  ports:
+    - port: 32326
+      targetPort: 80
+  type: LoadBalancer
